@@ -1,7 +1,6 @@
 import os
 import subprocess
 from pathlib import Path
-import glob
 import re
 
 from convert_vtt_to_srt import vtt_to_srt

@@ -1,5 +1,3 @@
-import os
-
 import pysrt
 from tqdm import tqdm
 

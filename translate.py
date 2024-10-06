@@ -1,5 +1,3 @@
-import os
-
 import pysrt
 from googletranslatepy import Translator
 from tqdm import tqdm
