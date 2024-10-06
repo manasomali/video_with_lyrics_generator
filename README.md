@@ -47,3 +47,7 @@ python generate_videos.py
 
 Edit the `generate_videos.py` file to change the `title` variable and add the videos inside the `videos/backgrounds` folder to be used as background.
 The final videos will be saved in the `videos/pt_en_sub` folder, with the audio and subtitles in English and Portuguese
+
+## Sample Result
+
+You can see some results in this TikTok profile [@mansoma.music](https://www.tiktok.com/@manasoma.music)
