@@ -3,12 +3,10 @@ import subprocess
 from pathlib import Path
 import re
 
-from convert_vtt_to_srt import vtt_to_srt
-from translate import translate_srt_file
-from process import post_process_srt
+from helpers import vtt_to_srt, translate_srt_file, post_process_srt
 
 
-def download_video(url, mp4_destiny):
+def download_video(url: str, mp4_destiny: str) -> None:
     subprocess.run([
         "yt-dlp",
         "-f", "bestvideo+bestaudio",
@@ -17,7 +15,7 @@ def download_video(url, mp4_destiny):
         url
     ])
 
-def download_audio(url, mp3_destiny):
+def download_audio(url: str, mp3_destiny: str) -> None:
     subprocess.run([
         "yt-dlp",
         "-x",
@@ -26,7 +24,7 @@ def download_audio(url, mp3_destiny):
         url
     ])
 
-def download_subs(url, srt_destiny, sub_langs):
+def download_subs(url: str, srt_destiny: str, sub_langs: list[str]) -> None:
     for lang in sub_langs:
         subprocess.run([
             "yt-dlp",

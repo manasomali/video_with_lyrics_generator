@@ -1,6 +1,6 @@
 import os
 
-dirs = [
+DIRS = [
     "videos/not_sub", 
     "videos/original",
     "videos/pt_sub",
@@ -11,5 +11,6 @@ dirs = [
     "audios"
 ]
 
-for directory in dirs:
-    os.makedirs(directory, exist_ok=True)
+if __name__ == "__main__":
+    for directory in DIRS:
+        os.makedirs(directory, exist_ok=True)
