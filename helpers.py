@@ -3,6 +3,7 @@ import re
 import pysrt
 from googletranslatepy import Translator
 from tqdm import tqdm
+import pysubs2
 
 def translate_srt_file(file_path: str, src_lang: str, dest_lang: str, out_file: str) -> None:
     print("Translating:", file_path)
@@ -20,6 +21,64 @@ def translate_srt_file(file_path: str, src_lang: str, dest_lang: str, out_file: 
     subs.save(out_file, encoding="utf-8")
 
 
+def srt_to_ass(input_srt, fade_in_ms: int, fade_out_ms: int, font: str, color: str, font_size: str, karaoke: bool):
+    subs = pysubs2.load(input_srt, encoding="utf-8")
+    
+    for style in subs.styles.values():
+        style.fontname = font
+        style.fontsize = float(font_size)
+        style.primarycolor = color
+
+    for event in subs:
+        event.text = str(event.text)
+
+    subs.save(input_srt.replace(".srt", ".ass"))
+    
+    disable_scalal_border_and_shadow(input_srt.replace(".srt", ".ass"))
+    if karaoke:
+        add_karaoke_effect_evenly(input_srt.replace(".srt", ".ass"))
+    add_fade_in_and_fade_out(input_srt.replace(".srt", ".ass"), fade_in_ms, fade_out_ms)
+
+def add_fade_in_and_fade_out(ass_file_path, fade_in_ms, fade_out_ms):
+    subs = pysubs2.load(ass_file_path, encoding="utf-8")
+    for event in subs:
+        event.text = f"{{\\fad({fade_in_ms},{fade_out_ms})}}{event.text}"
+
+    subs.save(ass_file_path.replace(".srt", ".ass"))
+
+
+def disable_scalal_border_and_shadow(ass_file_path):
+    with open(ass_file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+
+    lines = [line.replace("ScaledBorderAndShadow: yes", "ScaledBorderAndShadow: no") for line in lines]
+
+    with open(ass_file_path, 'w', encoding='utf-8') as file:
+        file.writelines(lines)
+
+def add_karaoke_effect_evenly(ass_file_path):
+    subs = pysubs2.load(ass_file_path)
+
+    for line in subs:
+        if not line.is_comment:
+            total_duration = (line.end - line.start) // 10
+            
+            words = line.text.split()
+            num_words = len(words)
+            
+            if num_words == 0:
+                continue
+
+            word_duration = total_duration // num_words
+            
+            new_text = ""
+            for word in words:
+                new_text += f"{{\\k{word_duration}}}{word} "
+
+            line.text = new_text.strip()
+
+    subs.save(ass_file_path)
+
 def post_process_srt(file_path: str) -> None:
     print("Processing:", file_path)
 
@@ -27,9 +86,13 @@ def post_process_srt(file_path: str) -> None:
 
     for subtitle in tqdm(subs, desc="Processing subtitle"):
         original_text: str = subtitle.text
-        new_text: str = original_text.replace("&nbsp","").replace("&NBSP","").replace(";","").replace("♪","").replace("  ","").strip()
+        cleaned_text = re.sub(r'\[.*?\]|\(.*?\)', '', original_text)
+        processed_text = ' '.join(cleaned_text.split())
+        new_text: str = processed_text.replace("&nbsp","").replace("&NBSP","").replace(";","").replace("♪","").replace("  ","").strip()
         if "/pt/" in file_path:
             new_text = new_text.upper()
+        if "/en/" in file_path:
+            new_text = new_text.lower()
         
         subtitle.text = new_text
 
@@ -61,3 +124,14 @@ def vtt_to_srt(vtt_file: str, srt_file: str) -> bool:
     except Exception as e:
         print("Fail to convert vtt to srt", e)
         return False
+
+def remove_lang_sufix(filename):
+    text_list = filename.split('.')
+    if len(text_list)==2:
+        extension = text_list[-1]
+        text_list = text_list[:-1]
+    else:
+        extension = text_list[-1]
+        text_list = text_list[:-2]
+
+    return f"{".".join(text_list)}.{extension}"
